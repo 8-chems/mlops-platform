@@ -14,3 +14,7 @@ output "db_password" {
 output "db_password_secret_id" {
   value = google_secret_manager_secret.db_password.id
 }
+
+output "db_password_secret_name" {
+  value = google_secret_manager_secret.db_password.secret_id
+}

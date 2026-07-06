@@ -52,6 +52,7 @@ module "iam" {
   cloud_sql_instance_id       = module.cloud_sql.instance_id
   secret_ids                  = module.secret_manager.secret_ids
   db_password_secret_id       = module.cloud_sql.db_password_secret_id
+  db_password_secret_name     = module.cloud_sql.db_password_secret_name
   terraform_service_account_email = var.terraform_service_account_email
 }
 
