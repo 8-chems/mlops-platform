@@ -343,7 +343,7 @@ images → `terraform apply`.
 
 ```powershell
 $env:PROJECT_ID = "YOUR_PROJECT_ID"
-$env:GITHUB_ORG = "your-github-username-or-org"
+$env:GITHUB_ORG = "8-chems"
 $env:GITHUB_REPO = "mlops-platform"
 
 gcloud iam service-accounts create github-actions `
@@ -374,10 +374,11 @@ Grant roles needed to push images, run Terraform, and manage Cloud Run:
 ```powershell
 $roles = @(
   "roles/run.admin",
-  "roles/artifactregistry.writer",
+  "roles/artifactregistry.admin",
   "roles/storage.admin",
   "roles/cloudsql.admin",
   "roles/secretmanager.admin",
+  "roles/iam.serviceAccountAdmin",
   "roles/iam.serviceAccountUser",
   "roles/serviceusage.serviceUsageAdmin"
 )
@@ -393,10 +394,11 @@ foreach ($ROLE in $roles) {
 ```bash
 for ROLE in \
   roles/run.admin \
-  roles/artifactregistry.writer \
+  roles/artifactregistry.admin \
   roles/storage.admin \
   roles/cloudsql.admin \
   roles/secretmanager.admin \
+  roles/iam.serviceAccountAdmin \
   roles/iam.serviceAccountUser \
   roles/serviceusage.serviceUsageAdmin; do
   gcloud projects add-iam-policy-binding $PROJECT_ID \
@@ -413,7 +415,7 @@ Set your GitHub owner and repo name first:
 
 ```powershell
 $env:PROJECT_ID = "my-mlops-staging-123456"
-$env:GITHUB_ORG = "your-github-username-or-org"   # e.g. chemseddineberbague
+$env:GITHUB_ORG = "8-chems"   # e.g. chemseddineberbague
 $env:GITHUB_REPO = "mlops-platform"
 $env:SA_EMAIL = "github-actions@$($env:PROJECT_ID).iam.gserviceaccount.com"
 ```
@@ -562,6 +564,26 @@ Step 10 → push to main → CI builds images + terraform apply with real tags
    ```
 
 5. Add the frontend Cloud Run domain to Firebase **Authorized domains** (step 8f).
+
+**If CI fails with `409 already exists` + `403 Permission denied`:**
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `instanceAlreadyExists`, `already exists` | CI used **default** workspace; your local state is in **`staging`** | CI now runs `terraform workspace select staging` — push latest workflow |
+| `artifactregistry.repositories.create` denied | `github-actions` has `writer` not `admin` | Grant `roles/artifactregistry.admin` (see below) |
+| `iam.serviceAccounts.create` denied | missing `serviceAccountAdmin` | Grant `roles/iam.serviceAccountAdmin` (see below) |
+
+Grant missing roles (PowerShell):
+
+```powershell
+$env:PROJECT_ID = "my-mlops-staging-123456"
+$env:SA_EMAIL = "github-actions@$($env:PROJECT_ID).iam.gserviceaccount.com"
+foreach ($ROLE in @("roles/artifactregistry.admin", "roles/iam.serviceAccountAdmin")) {
+  gcloud projects add-iam-policy-binding $env:PROJECT_ID `
+    --member="serviceAccount:$($env:SA_EMAIL)" `
+    --role="$ROLE"
+}
+```
 
 **What CI injects into the frontend image:**
 

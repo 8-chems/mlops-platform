@@ -104,6 +104,7 @@ jobs:
         working-directory: terraform
         run: |
           terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
+          terraform workspace select staging || terraform workspace new staging
           terraform apply -auto-approve \
             -var-file=envs/staging.tfvars \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
