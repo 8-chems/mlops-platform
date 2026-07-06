@@ -173,6 +173,7 @@ APIs enabled in [`modules/apis/main.tf`](modules/apis/main.tf):
 
 | API | Used by |
 |-----|---------|
+| `cloudresourcemanager.googleapis.com` | Terraform provider (project metadata) |
 | `run.googleapis.com` | Cloud Run |
 | `sqladmin.googleapis.com` | Cloud SQL |
 | `storage.googleapis.com` | GCS |
