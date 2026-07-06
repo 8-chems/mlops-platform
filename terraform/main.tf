@@ -45,12 +45,13 @@ module "cloud_sql" {
 }
 
 module "iam" {
-  source                = "./modules/iam"
-  project_id            = var.project_id
-  service_account_id    = "${local.name_prefix}-run-sa"
-  gcs_bucket_name       = module.storage.bucket_name
-  cloud_sql_instance_id = module.cloud_sql.instance_id
-  secret_ids            = module.secret_manager.secret_ids
+  source                      = "./modules/iam"
+  project_id                  = var.project_id
+  service_account_id          = "${local.name_prefix}-run-sa"
+  gcs_bucket_name             = module.storage.bucket_name
+  cloud_sql_instance_id       = module.cloud_sql.instance_id
+  secret_ids                  = module.secret_manager.secret_ids
+  terraform_service_account_email = var.terraform_service_account_email
 }
 
 module "cloud_run_backend" {

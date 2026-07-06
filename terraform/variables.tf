@@ -48,3 +48,8 @@ variable "jwt_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "terraform_service_account_email" {
+  description = "Email of the service account running Terraform (for Workload Identity Federation)"
+  type        = string
+}

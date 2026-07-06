@@ -5,6 +5,10 @@ variable "cloud_sql_instance_id" { type = string }
 variable "secret_ids" {
   type = map(string)
 }
+variable "terraform_service_account_email" {
+  description = "Email of the service account running Terraform (for Workload Identity Federation)"
+  type        = string
+}
 
 resource "google_service_account" "run_sa" {
   project      = var.project_id
@@ -36,4 +40,10 @@ resource "google_project_iam_member" "aiplatform_user" {
   project = var.project_id
   role    = "roles/aiplatform.user"
   member  = "serviceAccount:${google_service_account.run_sa.email}"
+}
+
+resource "google_project_iam_member" "terraform_project_iam_admin" {
+  project = var.project_id
+  role    = "roles/resourcemanager.projectIamAdmin"
+  member  = "serviceAccount:${var.terraform_service_account_email}"
 }
