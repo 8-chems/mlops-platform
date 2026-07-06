@@ -53,3 +53,9 @@ variable "terraform_service_account_email" {
   description = "Email of the service account running Terraform (for Workload Identity Federation)"
   type        = string
 }
+
+variable "firebase_credentials" {
+  description = "Firebase service account credentials JSON"
+  type        = string
+  sensitive   = true
+}

@@ -1,4 +1,6 @@
 """Firebase Admin SDK initialization and ID token verification."""
+import os
+import json
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
@@ -12,7 +14,13 @@ _app = None
 def get_firebase_app():
     global _app
     if _app is None:
-        cred = credentials.Certificate(settings.firebase_credentials_path)
+        # Try to get credentials from environment variable first (Cloud Run)
+        firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS")
+        if firebase_creds_json:
+            cred = credentials.Certificate(json.loads(firebase_creds_json))
+        else:
+            # Fall back to file path (local development)
+            cred = credentials.Certificate(settings.firebase_credentials_path)
         _app = firebase_admin.initialize_app(cred)
     return _app
 

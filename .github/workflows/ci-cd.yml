@@ -96,6 +96,7 @@ jobs:
           terraform apply -auto-approve \
             -var-file=envs/staging.tfvars \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
+            -var="firebase_credentials=${{ secrets.FIREBASE_CREDENTIALS }}" \
             -var="backend_image=${{ env.BACKEND_IMAGE }}" \
             -var="frontend_image=" \
             -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}" \

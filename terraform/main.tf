@@ -26,9 +26,10 @@ module "storage" {
 module "secret_manager" {
   source     = "./modules/secret_manager"
   project_id = var.project_id
-  secret_ids = toset(["jwt-secret-key"])
+  secret_ids = toset(["jwt-secret-key", "firebase-credentials"])
   secret_values = {
-    jwt-secret-key = var.jwt_secret
+    jwt-secret-key        = var.jwt_secret
+    firebase-credentials  = var.firebase_credentials
   }
   depends_on = [module.apis]
 }
@@ -72,8 +73,9 @@ module "cloud_run_backend" {
     CORS_ORIGINS        = "*"
   }
   secret_env_vars = {
-    JWT_SECRET_KEY = module.secret_manager.secret_ids["jwt-secret-key"]
-    DB_PASSWORD    = module.cloud_sql.db_password_secret_id
+    JWT_SECRET_KEY       = module.secret_manager.secret_ids["jwt-secret-key"]
+    DB_PASSWORD          = module.cloud_sql.db_password_secret_id
+    FIREBASE_CREDENTIALS = module.secret_manager.secret_ids["firebase-credentials"]
   }
   cloudsql_connection = module.cloud_sql.connection_name
   depends_on = [module.apis]
