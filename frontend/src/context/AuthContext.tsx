@@ -1,0 +1,60 @@
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { api } from '../api/client'
+import { signInWithGoogle } from '../api/firebase'
+
+interface User {
+  id: string
+  email: string
+  display_name: string | null
+  role: 'admin' | 'client'
+}
+
+interface AuthContextValue {
+  user: User | null
+  loading: boolean
+  loginWithGoogle: () => Promise<void>
+  logout: () => void
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      setLoading(false)
+      return
+    }
+    api.get('/auth/me').then((res) => setUser(res.data)).catch(() => {
+      localStorage.removeItem('access_token')
+    }).finally(() => setLoading(false))
+  }, [])
+
+  async function loginWithGoogle() {
+    const idToken = await signInWithGoogle()
+    const res = await api.post('/auth/google', { id_token: idToken })
+    localStorage.setItem('access_token', res.data.access_token)
+    setUser(res.data.user)
+  }
+
+  function logout() {
+    localStorage.removeItem('access_token')
+    setUser(null)
+    window.location.href = '/login'
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
+}
