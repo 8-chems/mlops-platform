@@ -47,6 +47,8 @@ resource "google_secret_manager_secret_iam_member" "db_password_access" {
   secret_id = var.db_password_secret_name
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.run_sa.email}"
+
+  depends_on = [google_service_account.run_sa]
 }
 
 resource "google_project_iam_member" "aiplatform_user" {
