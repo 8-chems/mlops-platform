@@ -95,6 +95,11 @@ jobs:
           docker push $IMAGE
           echo "FRONTEND_IMAGE=$IMAGE" >> $GITHUB_ENV
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.6"
+
       - name: Terraform apply
         working-directory: terraform
         run: |
