@@ -83,7 +83,7 @@ jobs:
           docker push $IMAGE
           echo "BACKEND_IMAGE=$IMAGE" >> $GITHUB_ENV
 
-      - name: Build & push frontend
+      - name: Build & push frontend with arguments
         run: |
           IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/frontend:${{ github.sha }}
           docker build -t $IMAGE ./frontend \
