@@ -25,4 +25,8 @@ resource "google_secret_manager_secret_version" "version" {
   for_each    = var.secret_ids
   secret      = google_secret_manager_secret.secret[each.key].id
   secret_data = var.secret_values[each.key]
+
+  lifecycle {
+    ignore_changes = [secret_data]
+  }
 }
