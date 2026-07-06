@@ -57,7 +57,7 @@ resource "google_secret_manager_secret_iam_member" "firebase_credentials_access"
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.run_sa.email}"
 
-  depends_on = [google_service_account.run_sa]
+  depends_on = [google_service_account.run_sa, var.secret_ids]
 }
 
 resource "google_project_iam_member" "aiplatform_user" {
