@@ -51,6 +51,7 @@ module "iam" {
   gcs_bucket_name             = module.storage.bucket_name
   cloud_sql_instance_id       = module.cloud_sql.instance_id
   secret_ids                  = module.secret_manager.secret_ids
+  db_password_secret_id       = module.cloud_sql.db_password_secret_id
   terraform_service_account_email = var.terraform_service_account_email
 }
 
@@ -71,6 +72,7 @@ module "cloud_run_backend" {
   }
   secret_env_vars = {
     JWT_SECRET_KEY = module.secret_manager.secret_ids["jwt-secret-key"]
+    DB_PASSWORD    = module.cloud_sql.db_password_secret_id
   }
   cloudsql_connection = module.cloud_sql.connection_name
   depends_on = [module.apis]
@@ -84,7 +86,9 @@ module "cloud_run_frontend" {
   image           = var.frontend_image != "" ? var.frontend_image : "gcr.io/cloudrun/hello"
   service_account = module.iam.service_account_email
   allow_unauthenticated = true
-  env_vars        = {}
+  env_vars = {
+    BACKEND_CLOUD_RUN_URL = module.cloud_run_backend.service_url
+  }
   secret_env_vars = {}
   depends_on      = [module.apis, module.cloud_run_backend]
 }

@@ -5,6 +5,9 @@ variable "cloud_sql_instance_id" { type = string }
 variable "secret_ids" {
   type = map(string)
 }
+variable "db_password_secret_id" {
+  type = string
+}
 variable "terraform_service_account_email" {
   description = "Email of the service account running Terraform (for Workload Identity Federation)"
   type        = string
@@ -32,6 +35,13 @@ resource "google_secret_manager_secret_iam_member" "secret_access" {
   for_each  = var.secret_ids
   project   = var.project_id
   secret_id = each.value
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.run_sa.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "db_password_access" {
+  project   = var.project_id
+  secret_id = var.db_password_secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.run_sa.email}"
 }
