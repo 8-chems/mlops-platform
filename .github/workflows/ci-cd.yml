@@ -83,24 +83,12 @@ jobs:
           docker push $IMAGE
           echo "BACKEND_IMAGE=$IMAGE" >> $GITHUB_ENV
 
-      - name: Build & push frontend with arguments !
-        run: |
-          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/frontend:${{ github.sha }}
-          docker build -t $IMAGE ./frontend \
-            --build-arg VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }} \
-            --build-arg VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }} \
-            --build-arg VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }} \
-            --build-arg VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }} \
-            --build-arg BACKEND_CLOUD_RUN_URL=${{ secrets.BACKEND_CLOUD_RUN_URL }}
-          docker push $IMAGE
-          echo "FRONTEND_IMAGE=$IMAGE" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.6"
 
-      - name: Terraform apply
+      - name: Terraform apply (backend only)
         working-directory: terraform
         run: |
           terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
@@ -109,5 +97,36 @@ jobs:
             -var-file=envs/staging.tfvars \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
             -var="backend_image=${{ env.BACKEND_IMAGE }}" \
+            -var="frontend_image=" \
+            -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}" \
+            -target=module.cloud_run_backend
+
+      - name: Get backend URL
+        working-directory: terraform
+        run: |
+          BACKEND_URL=$(terraform output -raw backend_url)
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+          echo "Backend URL: $BACKEND_URL"
+
+      - name: Build & push frontend with backend URL
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/frontend:${{ github.sha }}
+          docker build -t $IMAGE ./frontend \
+            --build-arg VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }} \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }} \
+            --build-arg VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }} \
+            --build-arg VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }} \
+            --build-arg BACKEND_CLOUD_RUN_URL=${{ env.BACKEND_URL }}
+          docker push $IMAGE
+          echo "FRONTEND_IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Terraform apply (frontend)
+        working-directory: terraform
+        run: |
+          terraform apply -auto-approve \
+            -var-file=envs/staging.tfvars \
+            -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
+            -var="backend_image=${{ env.BACKEND_IMAGE }}" \
             -var="frontend_image=${{ env.FRONTEND_IMAGE }}" \
-            -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}"
+            -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}" \
+            -target=module.cloud_run_frontend
