@@ -2,6 +2,7 @@ variable "project_id" { type = string }
 
 resource "google_project_service" "services" {
   for_each = toset([
+    "cloudresourcemanager.googleapis.com",
     "run.googleapis.com",
     "sqladmin.googleapis.com",
     "storage.googleapis.com",
