@@ -103,6 +103,14 @@ jobs:
             -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}" \
             -target=module.cloud_run_backend
 
+      - name: Run database migrations
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          export DATABASE_URL="postgresql://mlops:$(gcloud secrets access my-mlops-staging-db-db-password --project=${{ secrets.GCP_PROJECT_ID }})@/mlops?host=/cloudsql/${{ secrets.GCP_PROJECT_ID }}:europe-west1:mlops-staging-db"
+          export FIREBASE_CREDENTIALS='${{ secrets.FIREBASE_CREDENTIALS }}'
+          alembic upgrade head
+
       - name: Get backend URL
         working-directory: terraform
         run: |
