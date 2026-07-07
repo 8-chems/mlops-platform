@@ -4,7 +4,7 @@ A production-style MLOps platform for training, tracking, registering, and
 serving image classification models — built as a portfolio-grade reference
 architecture for GCP.
 
-##  Stack
+##  Full Stack
 
 - **Frontend**: React + TypeScript + MUI + React Query, Firebase Google Auth
 - **Backend**: FastAPI + SQLAlchemy + Alembic, JWT sessions
