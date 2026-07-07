@@ -46,5 +46,6 @@ def health():
 @app.on_event("startup")
 def on_startup():
     # For local dev convenience. In staging/prod, use Alembic migrations instead.
-    if settings.environment == "local":
+    # Temporarily enabled for staging to bootstrap database until migrations are working
+    if settings.environment in ["local", "staging"]:
         Base.metadata.create_all(bind=engine)
