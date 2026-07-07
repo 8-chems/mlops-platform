@@ -58,4 +58,12 @@ variable "firebase_credentials" {
   description = "Firebase service account credentials JSON"
   type        = string
   sensitive   = true
+  default     = ""
+}
+
+variable "firebase_credentials_base64" {
+  description = "Firebase service account credentials JSON (base64 encoded)"
+  type        = string
+  sensitive   = true
+  default     = ""
 }

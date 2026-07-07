@@ -93,10 +93,11 @@ jobs:
         run: |
           terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
           terraform workspace select staging || terraform workspace new staging
+          echo '${{ secrets.FIREBASE_CREDENTIALS }}' | base64 > firebase_credentials.b64
           terraform apply -auto-approve \
             -var-file=envs/staging.tfvars \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
-            -var="firebase_credentials='${{ secrets.FIREBASE_CREDENTIALS }}'" \
+            -var="firebase_credentials_base64=$(cat firebase_credentials.b64)" \
             -var="backend_image=${{ env.BACKEND_IMAGE }}" \
             -var="frontend_image=" \
             -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}" \
@@ -124,10 +125,11 @@ jobs:
       - name: Terraform apply (frontend)
         working-directory: terraform
         run: |
+          echo '${{ secrets.FIREBASE_CREDENTIALS }}' | base64 > firebase_credentials.b64
           terraform apply -auto-approve \
             -var-file=envs/staging.tfvars \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
-            -var="firebase_credentials='${{ secrets.FIREBASE_CREDENTIALS }}'" \
+            -var="firebase_credentials_base64=$(cat firebase_credentials.b64)" \
             -var="backend_image=${{ env.BACKEND_IMAGE }}" \
             -var="frontend_image=${{ env.FRONTEND_IMAGE }}" \
             -var="terraform_service_account_email=${{ secrets.WIF_SERVICE_ACCOUNT }}" \

@@ -1,5 +1,6 @@
 locals {
   name_prefix = "mlops-${var.environment}"
+  firebase_credentials = var.firebase_credentials_base64 != "" ? base64decode(var.firebase_credentials_base64) : var.firebase_credentials
 }
 
 module "apis" {
@@ -29,7 +30,7 @@ module "secret_manager" {
   secret_ids = toset(["jwt-secret-key", "firebase-credentials"])
   secret_values = {
     jwt-secret-key        = var.jwt_secret
-    firebase-credentials  = var.firebase_credentials
+    firebase-credentials  = local.firebase_credentials
   }
   depends_on = [module.apis]
 }
