@@ -33,12 +33,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).finally(() => setLoading(false))
   }, [])
 
-  async function loginWithGoogle() {
+async function loginWithGoogle() {
+  try {
     const idToken = await signInWithGoogle()
+    console.log('[Auth] Got Firebase ID token, length:', idToken?.length)
+
     const res = await api.post('/auth/google', { id_token: idToken })
+    console.log('[Auth] /auth/google success:', res.data)
+
     localStorage.setItem('access_token', res.data.access_token)
     setUser(res.data.user)
+  } catch (err: any) {
+    console.error('[Auth] loginWithGoogle failed')
+    console.error('[Auth] status:', err?.response?.status)
+    console.error('[Auth] response body:', err?.response?.data)
+    console.error('[Auth] request payload sent:', err?.config?.data)
+    throw err
   }
+}
 
   function logout() {
     localStorage.removeItem('access_token')
