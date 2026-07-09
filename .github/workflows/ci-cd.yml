@@ -107,9 +107,22 @@ jobs:
         working-directory: backend
         run: |
           pip install -r requirements.txt
-          # Skip migrations in CI/CD - Cloud SQL socket connection doesn't work from GitHub runners
-          # Migrations should be run manually from Cloud Shell or from within the Cloud Run service
-          echo "Skipping database migrations in CI/CD - run manually from Cloud Shell"
+          # Download Cloud SQL Proxy
+          wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.4/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
+          chmod +x cloud-sql-proxy
+          # Start Cloud SQL Proxy in background
+          ./cloud-sql-proxy my-mlops-staging-123456:europe-west1:mlops-staging-db --port 5432 &
+          PROXY_PID=$!
+          # Wait for proxy to be ready
+          sleep 5
+          # Get database password
+          DB_PASSWORD=$(gcloud secrets access my-mlops-staging-db-db-password --project=${{ secrets.GCP_PROJECT_ID }})
+          # Run migrations using TCP connection through proxy
+          export DATABASE_URL="postgresql://mlops:${DB_PASSWORD}@localhost:5432/mlops"
+          export FIREBASE_CREDENTIALS='${{ secrets.FIREBASE_CREDENTIALS }}'
+          alembic upgrade head
+          # Kill the proxy
+          kill $PROXY_PID
 
       - name: Get backend URL
         working-directory: terraform

@@ -47,15 +47,18 @@ def login_with_google(payload: GoogleLoginRequest, db: Session = Depends(get_db)
 @router.post("/dev-login", response_model=TokenResponse)
 def dev_login(db: Session = Depends(get_db)):
     """Dev-only login bypass for fast testing without Firebase."""
-    user = db.query(User).filter(User.email == "dev@test.com").first()
-    if user is None:
-        user = User(firebase_uid="dev-uid", email="dev@test.com", display_name="Dev User", role=UserRole.admin)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    try:
+        user = db.query(User).filter(User.email == "dev@test.com").first()
+        if user is None:
+            user = User(firebase_uid="dev-uid", email="dev@test.com", display_name="Dev User", role=UserRole.admin)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
-    access_token = create_access_token(user.id, user.role.value)
-    return TokenResponse(access_token=access_token, user=UserOut.model_validate(user))
+        access_token = create_access_token(user.id, user.role.value)
+        return TokenResponse(access_token=access_token, user=UserOut.model_validate(user))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
 @router.get("/me", response_model=UserOut)
