@@ -1,10 +1,15 @@
+import sys
+from pathlib import Path
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
+# Add parent directory to path so imports work
+sys.path.append(str(Path(__file__).parent.parent))
+
 from app.core.config import get_settings
-from app.database import Base
+from app.database import Base, get_engine
 from app.models import user, dataset, training, prediction  # noqa: F401
 
 config = context.config
@@ -25,7 +30,7 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    connectable = engine_from_config(config.get_section(config.config_ini_section), prefix="sqlalchemy.", poolclass=pool.NullPool)
+    connectable = get_engine()
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
