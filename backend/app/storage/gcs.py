@@ -1,8 +1,6 @@
 import uuid
 from io import BytesIO
 
-from google.cloud import storage
-
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -10,7 +8,8 @@ settings = get_settings()
 _client = None
 
 
-def get_client() -> storage.Client:
+def get_client():
+    from google.cloud import storage
     global _client
     if _client is None:
         _client = storage.Client(project=settings.gcp_project_id)

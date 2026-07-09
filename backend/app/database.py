@@ -27,9 +27,14 @@ def get_session_local():
 
 Base = declarative_base()
 
+# Don't create engine at import time - only when first needed
+engine = None
+SessionLocal = None
 
 def get_db():
-    SessionLocal = get_session_local()
+    global SessionLocal
+    if SessionLocal is None:
+        SessionLocal = get_session_local()
     db = SessionLocal()
     try:
         yield db

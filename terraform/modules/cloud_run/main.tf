@@ -58,6 +58,28 @@ resource "google_cloud_run_v2_service" "service" {
         name           = "http1"
       }
 
+      startup_probe {
+        initial_delay_seconds = 60
+        timeout_seconds = 60
+        period_seconds = 10
+        failure_threshold = 3
+        http_get {
+          path = "/health"
+          port = 8080
+        }
+      }
+
+      liveness_probe {
+        initial_delay_seconds = 120
+        timeout_seconds = 10
+        period_seconds = 10
+        failure_threshold = 3
+        http_get {
+          path = "/health"
+          port = 8080
+        }
+      }
+
       resources {
         limits = {
           cpu    = var.cpu

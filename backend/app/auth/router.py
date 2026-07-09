@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from firebase_admin import auth as firebase_auth
 
 from app.database import get_db
 from app.models.user import User, UserRole
@@ -26,7 +25,7 @@ def login_with_google(payload: GoogleLoginRequest, db: Session = Depends(get_db)
     a platform-issued JWT, creating the user record on first login."""
     try:
         decoded = verify_firebase_token(payload.id_token)
-    except (firebase_auth.InvalidIdTokenError, ValueError):
+    except Exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
 
     firebase_uid = decoded["uid"]

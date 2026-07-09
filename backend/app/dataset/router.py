@@ -2,7 +2,6 @@ import uuid
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
-from PIL import Image
 import io
 
 from app.database import get_db
@@ -45,6 +44,7 @@ def delete_class(class_id: uuid.UUID, db: Session = Depends(get_db)):
 
 @router.post("/classes/{class_id}/images", response_model=DatasetImageOut, dependencies=[Depends(require_admin)])
 async def upload_image(class_id: uuid.UUID, split: str = "train", file: UploadFile = File(...), db: Session = Depends(get_db)):
+    from PIL import Image
     cls = db.query(DatasetClass).filter(DatasetClass.id == class_id).first()
     if cls is None:
         raise HTTPException(status_code=404, detail="Class not found")

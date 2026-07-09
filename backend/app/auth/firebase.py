@@ -2,8 +2,6 @@
 import os
 import json
 import logging
-import firebase_admin
-from firebase_admin import credentials, auth as firebase_auth
 
 from app.core.config import get_settings
 
@@ -14,6 +12,9 @@ _app = None
 
 
 def get_firebase_app():
+    import firebase_admin
+    from firebase_admin import credentials
+
     global _app
     if _app is None:
         firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS")
