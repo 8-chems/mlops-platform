@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import logging
 import uuid
 
-from jose import jwt, JWTError, ExpiredSignatureError, JWTClaimsError
+from jose import jwt, JWTError, ExpiredSignatureError
 
 from app.core.config import get_settings
 
@@ -38,9 +38,6 @@ def decode_access_token(token: str) -> dict | None:
     except ExpiredSignatureError:
         logger.warning("Access token decode failed: EXPIRED")
         return None
-    except JWTClaimsError as e:
-        logger.warning("Access token decode failed: invalid claims - %s", e)
-        return None
     except JWTError as e:
-        logger.warning("Access token decode failed: %s (secret/algorithm mismatch or malformed token)", e)
+        logger.warning("Access token decode failed: %s", e)
         return None
