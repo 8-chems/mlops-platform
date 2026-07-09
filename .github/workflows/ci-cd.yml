@@ -107,9 +107,9 @@ jobs:
         working-directory: backend
         run: |
           pip install -r requirements.txt
-          export DATABASE_URL="postgresql://mlops:$(gcloud secrets access my-mlops-staging-db-db-password --project=${{ secrets.GCP_PROJECT_ID }})@/mlops?host=/cloudsql/${{ secrets.GCP_PROJECT_ID }}:europe-west1:mlops-staging-db"
-          export FIREBASE_CREDENTIALS='${{ secrets.FIREBASE_CREDENTIALS }}'
-          alembic upgrade head
+          # Skip migrations in CI/CD - Cloud SQL socket connection doesn't work from GitHub runners
+          # Migrations should be run manually from Cloud Shell or from within the Cloud Run service
+          echo "Skipping database migrations in CI/CD - run manually from Cloud Shell"
 
       - name: Get backend URL
         working-directory: terraform
