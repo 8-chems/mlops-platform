@@ -6,21 +6,24 @@ import tempfile
 import uuid
 
 import numpy as np
-import tensorflow as tf
 from PIL import Image
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 
 IMG_SIZE = (224, 224)
 
-ARCHITECTURES = {
-    "EfficientNetB0": tf.keras.applications.EfficientNetB0,
-    "ResNet50": tf.keras.applications.ResNet50,
-    "MobileNetV2": tf.keras.applications.MobileNetV2,
-}
+def get_architectures():
+    import tensorflow as tf
+    return {
+        "EfficientNetB0": tf.keras.applications.EfficientNetB0,
+        "ResNet50": tf.keras.applications.ResNet50,
+        "MobileNetV2": tf.keras.applications.MobileNetV2,
+    }
 
 
-def build_model(architecture: str, num_classes: int, learning_rate: float, optimizer_name: str) -> tf.keras.Model:
-    base_cls = ARCHITECTURES.get(architecture, tf.keras.applications.EfficientNetB0)
+def build_model(architecture: str, num_classes: int, learning_rate: float, optimizer_name: str):
+    import tensorflow as tf
+    architectures = get_architectures()
+    base_cls = architectures.get(architecture, tf.keras.applications.EfficientNetB0)
     base = base_cls(include_top=False, weights="imagenet", input_shape=(*IMG_SIZE, 3), pooling="avg")
     base.trainable = False
 
@@ -47,7 +50,8 @@ def bytes_to_array(image_bytes: bytes) -> np.ndarray:
     return np.asarray(img, dtype=np.float32) / 255.0
 
 
-def build_augmentation_layer() -> tf.keras.Sequential:
+def build_augmentation_layer():
+    import tensorflow as tf
     return tf.keras.Sequential([
         tf.keras.layers.RandomFlip("horizontal"),
         tf.keras.layers.RandomRotation(0.1),
@@ -66,7 +70,7 @@ def train_model(
     learning_rate: float,
     optimizer_name: str,
     augmentation: bool,
-) -> tuple[tf.keras.Model, dict]:
+) -> tuple:
     X = np.stack(images)
     y = np.array(labels)
 
@@ -103,14 +107,14 @@ def train_model(
     return model, metrics
 
 
-def save_model_to_tempdir(model: tf.keras.Model) -> str:
+def save_model_to_tempdir(model) -> str:
     tmpdir = tempfile.mkdtemp()
     path = f"{tmpdir}/{uuid.uuid4().hex}.keras"
     model.save(path)
     return path
 
 
-def predict_image(model: tf.keras.Model, image_bytes: bytes, class_names: list[str]) -> tuple[str, float]:
+def predict_image(model, image_bytes: bytes, class_names: list[str]) -> tuple[str, float]:
     arr = np.expand_dims(bytes_to_array(image_bytes), axis=0)
     probs = model.predict(arr, verbose=0)[0]
     idx = int(np.argmax(probs))
