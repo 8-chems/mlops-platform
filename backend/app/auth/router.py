@@ -45,6 +45,20 @@ def login_with_google(payload: GoogleLoginRequest, db: Session = Depends(get_db)
     return TokenResponse(access_token=access_token, user=UserOut.model_validate(user))
 
 
+@router.post("/dev-login", response_model=TokenResponse)
+def dev_login(db: Session = Depends(get_db)):
+    """Dev-only login bypass for fast testing without Firebase."""
+    user = db.query(User).filter(User.email == "dev@test.com").first()
+    if user is None:
+        user = User(firebase_uid="dev-uid", email="dev@test.com", display_name="Dev User", role=UserRole.admin)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token = create_access_token(user.id, user.role.value)
+    return TokenResponse(access_token=access_token, user=UserOut.model_validate(user))
+
+
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user

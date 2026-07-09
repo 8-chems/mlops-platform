@@ -13,6 +13,7 @@ interface AuthContextValue {
   user: User | null
   loading: boolean
   loginWithGoogle: () => Promise<void>
+  loginDev: () => Promise<void>
   logout: () => void
 }
 
@@ -52,6 +53,21 @@ async function loginWithGoogle() {
   }
 }
 
+async function loginDev() {
+  try {
+    const res = await api.post('/auth/dev-login')
+    console.log('[Auth] /auth/dev-login success:', res.data)
+
+    localStorage.setItem('access_token', res.data.access_token)
+    setUser(res.data.user)
+  } catch (err: any) {
+    console.error('[Auth] loginDev failed')
+    console.error('[Auth] status:', err?.response?.status)
+    console.error('[Auth] response body:', err?.response?.data)
+    throw err
+  }
+}
+
   function logout() {
     localStorage.removeItem('access_token')
     setUser(null)
@@ -59,7 +75,7 @@ async function loginWithGoogle() {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginDev, logout }}>
       {children}
     </AuthContext.Provider>
   )
