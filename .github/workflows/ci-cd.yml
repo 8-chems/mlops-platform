@@ -116,7 +116,7 @@ jobs:
           # Wait for proxy to be ready
           sleep 5
           # Get database password
-          DB_PASSWORD=$(gcloud secrets access my-mlops-staging-db-db-password --project=${{ secrets.GCP_PROJECT_ID }})
+          DB_PASSWORD=$(gcloud secrets versions access latest --secret=my-mlops-staging-db-db-password --project=${{ secrets.GCP_PROJECT_ID }})
           # Run migrations using TCP connection through proxy
           export DATABASE_URL="postgresql://mlops:${DB_PASSWORD}@localhost:5432/mlops"
           export FIREBASE_CREDENTIALS='${{ secrets.FIREBASE_CREDENTIALS }}'
